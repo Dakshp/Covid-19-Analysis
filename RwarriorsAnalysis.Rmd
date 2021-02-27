@@ -1,0 +1,373 @@
+---
+title: "Covid-19 Analysis"
+output:
+  pdf_document: default
+  html_notebook: default
+  word_document: default
+  html_document:
+    df_print: paged
+---
+<style>
+.data {
+    background:#e0e0e0;
+    padding:20px;
+}
+.answer {
+    background:#EBF4FA;
+    padding:20px; 
+    display:none;
+}
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+$$
+INTRODUCTION
+$$
+The most crucial thing in analyzing a pandemic is to ensure that all the factors that are responsible for the outbreak are well considered. Missing out on any of such factors, however trivial it might seem, will not give an accurate analysis. What makes this type of analysis challenging is the number of factors that keep varying across different countries. Considering the common and important ones which can be relied on for accurate analysis is what we get to learn from this project.<br/>
+<br/>
+Sometimes drilling down to root cause for analysis can turn out to be a futile effort. But identifying the right factors to do right analysis is equally important for analysing this kind of varying data. To name a few factors in the dataset that play a key role to help us analyse the outbreak are total cases, total deaths, total tests, population, recommendation delay, lockdown delay, health care index and many more. Data analysis of this dataset is needed to identify the direct and indirect relation between these variables. Using the existing statistics to identify such correlation can help countries in future to mitigate the widespread in case of such recurring pandemic. This has been the main interest behind analysing the dataset.
+<br/>
+<br/>
+Analysing data for the COVID-19 pandemic is very important. There are few countries who were successful in controlling and few who were not. Despite a good health care index, some countries still failed miserably in controlling the widespread. Some, despite having more population, had fewer cases as compared to other countries with a smaller population size but a lot of positive corona infected cases. At this point it becomes difficult to consider which factors can be assumed to help countries from preventing the spread of this virus. This analysis will tell us that it is not just one or two factors that are essential but a combination of multiple factors that needs to be addressed and focused up on equally, which will help us to control the widespread and also on how to put an end to this pandemic or any such pandemic in future. <br/>
+
+$$
+Data
+$$
+Analysis of such data is challenging. As expected, there was no such particular data that had covered all the variables which play an essential role to help in analysing data for COVID-19. In this project multiple datasets were merged into one to represent a meaningful meaningful analysis that helps to make an accurate analysis. <br/>
+
+Our dataset consists of 198 countries with 26 variables. There are few variables which were used to create data sets for accurate analysis. <br/>
+
+
+
+
+<table>
+  <tr>
+    <th>Sr. No</th>
+    <th>Variable</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Country</td>
+    <td>  Will contain all the country names</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>TotalCases</td>
+    <td>Total number of COVID-19 cases in each country</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>TotalDeaths</td>
+    <td>Total number of deaths due to COVID-19 in each country</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>TotalRecovered</td>
+    <td>Total patients who recovered from COVID-19</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>Population2020</td>
+    <td>Population of each country as of year 2020</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td>TotalTests</td>
+    <td>Total number of tests conducted</td>
+  </tr>
+  <tr>
+    <td>7</td>
+    <td>Median_age</td>
+    <td>Canada</td>
+  </tr>
+  <tr>
+    <td>8</td>
+    <td>Recommendation_delay</td>
+    <td> Number of days delayed to issue recommendation since first corona case</td>
+  </tr>
+  <tr>
+    <td>9</td>
+    <td>Lockdown_delay</td>
+    <td>Number of days delayed to impose lockdown since first corona case</td>
+  </tr>
+  <tr>
+    <td>10</td>
+    <td>Health_care_index</td>
+    <td> Representing overall quality of the health care system on scale of 100</td>
+  </tr>
+  <tr>
+    <td>11</td>
+    <td>Density</td>
+    <td> Represents population per square kilometer for each country</td>
+  </tr>
+  <tr>
+    <td>12</td>
+    <td>Total Cases_per_million</td>
+    <td> Represents total cases per million</td>
+  </tr>
+
+</table>
+
+$$
+Preloading Libraries
+$$
+```{r}
+library(tidyverse)
+require(knitr)
+require(lattice)
+library(dplyr)
+require(ggplot2)
+install.packages("corrplot")
+require(corrplot)
+```
+
+$$
+Loading Data
+$$
+
+```{r}
+COVID <- read_csv("COVID19.csv")
+```
+
+
+## Checking Data for NA values and analyzing the all the Variables
+```{r}
+COVID  %>% is.na() %>% colSums()
+str(COVID)
+```
+
+## Creating a numeric table and performing corelation
+```{r}
+nums <- unlist(lapply(COVID, is.numeric))
+numeric <- COVID[ , nums]
+
+numeric.rcorr = rcorr(as.matrix(numeric))
+numeric.rcorr
+```
+
+
+```{r}
+numeric.cor = cor(numeric, method = c("spearman"))
+corrplot(numeric.cor)
+```
+<br/>
+$$
+ Discriptive Analysis
+$$
+<br/>
+Knowing how ADVERSELY is the world affected due to the new Pendamic COVID-19<br/>
+
+
+```{r}
+sum(numeric$Population2020)
+sum(numeric$TotalCases)
+sum(numeric$TotalDeaths)
+sum(numeric$TotalRecovered)
+sum(numeric$ActiveCases)
+mean(numeric$Recomemendation_delay)
+range(numeric$Median_age)
+```
+
+
+
+<br/>Now as we know our data well, its time to explore some insites<br/>
+
+
+
+$$
+Exploratory Analysis
+$$
+
+<br/>
+
+1. Which are the top 10 countries affected by COVID-19?
+
+
+```{r}
+few<-COVID%>% select(Country,TotalCases,ActiveCases,Population2020,Density,TotalCases_per_million,Recomemendation_delay,World_share_percent,Lockdown_delay) %>% arrange(desc(COVID$`TotalCases`)) %>% head(10)
+
+ggplot(few, aes(x=Country, y=TotalCases, fill=Country)) +
+geom_bar(stat="identity")+theme_minimal() + geom_text(aes(label = paste0(round(Density))), position = position_stack(vjust = 0.5))+labs(title='Lables represents Population Density of Each Country', x = "Country", y = "Total Cases")
+
+
+```
+
+```{r}
+df<-COVID%>% select(Country,TotalCases,ActiveCases,Population2020,Recomemendation_delay,Health_care_index,Lockdown_delay) %>% arrange(desc(COVID$`TotalCases`)) %>% head(10)
+
+df
+```
+-> These are the top 10 most severely affected countries. 
+
+<br/>
+
+2.How does population affect Total Number of Positive COVID-19 Cases? 
+```{r}
+ ggplot(data = COVID, mapping = aes(x = Population2020, y = TotalCases)) +
+    geom_point(alpha = 3, color = "blue") +
+    geom_jitter(alpha = 9, color = "tomato") + scale_x_log10() + scale_y_log10() + geom_smooth(color ="blue") 
+
+```
+-> It seems that the population of a country is not much related to this outbreak. There are some countries with higher populations which have lower cases compared to countries with lesser populations and more cases, which means that we need to explore other factors for further analysis.
+ 
+
+
+<br/>
+
+3. Are there any countries that have not yet Imposed Lockdown? Which are they and How are they affected?
+
+
+```{r}
+nolock<- 
+  COVID %>% 
+  filter(is.na(Lockdown_delay))
+```
+
+```{r}
+nolock %>% select(Country,Recomemendation_delay,TotalCases,ActiveCases,Median_age,TotalDeaths,Population2020)
+```
+->There are 19 Countries that did not implement Lockdown. We get a vague observation that there are countries with less cases and also more cases which didn’t implement lockdown. This points out to the fact that we need to explore other variables that might be responsible for the outbreak.
+
+<br/>
+
+4. Is there any relation between Total cases per million and density?
+
+```{r}
+ggplot(few, aes(x=Density, y=Country, fill=Country)) +
+geom_bar(stat="identity")+theme_minimal() + geom_text(aes(label = paste0(round(Density))), position = position_stack(vjust = 0.5))+labs(title='Lables are Population Density', x = "Population Density", y = "Countries")
+```
+
+<br/>
+```{r}
+ggplot(few, aes(x=TotalCases_per_million, y=Country, fill=Country)) +
+geom_bar(stat="identity")+theme_minimal() + geom_text(aes(label = paste0(round(TotalCases_per_million))), position = position_stack(vjust = 0.5))+labs(title='Lables are Total COVID-19 Cases per million', x = "Total Cases per Million", y = "Country")
+```
+->We can see that from the graph, there is no relation between density and total cases per million. Some countries with higher population density but have lesser total cases per million and vice versa. This leads us to analyse the delay in actions against the COVID-19 outbreak which has increased the total cases in each country.
+
+
+
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5.Are there any outliers in the Impact of COVID-19 Cases and Lockdown Delay?
+
+```{r}
+#Total Cases
+boxplot(numeric$TotalCases)
+#Lockdown Delay
+boxplot(numeric$Lockdown_delay)
+
+```
+-> There are many outliers in the Lockdown delay compared to TotalCases hence we need to check the impact of some more variables.
+
+<br/>
+
+
+
+
+6.How were the countries based on delay in lockdown affected by COVID-19?  Is there any difference in impact?
+
+
+
+<br/>
+
+
+```{r}
+nld <-COVID%>% select(Country,TotalCases,ActiveCases,Population2020,Recomemendation_delay,Health_care_index,Lockdown_delay) %>%   arrange(COVID$`Lockdown_delay`) %>% head(10)
+
+ld<-COVID%>% select(Country,TotalCases,ActiveCases,Population2020,Recomemendation_delay,Health_care_index,Lockdown_delay) %>%   arrange(desc(COVID$`Lockdown_delay`)) %>% head(10)
+
+ggplot(nld, aes(x=TotalCases , y=Country, fill=Lockdown_delay)) +
+geom_bar(stat="identity")+theme_minimal() + geom_text(aes(label = paste0(round(Lockdown_delay))), position = position_stack(vjust = 0.5))+labs(title='Lables are Lockdown Delay in Days', x = "Total Cases", y = "Country")
+
+ggplot(ld, aes(x=TotalCases, y=Country, fill=Lockdown_delay)) +
+geom_bar(stat="identity")+theme_minimal() + geom_text(aes(label = paste0(round(Lockdown_delay))), position = position_stack(vjust = 0.5)) + scale_x_log10()+labs(title='Lables are Lockdown Delay in Days', x = "Total Cases", y = "Country")
+
+
+
+```
+->From the first graph, we can see that some of the countries that had imposed lockdown even before the first case was detected, the total number of cases did not increase drastically. On the contrary, from the second graph, the countries that delayed in imposing lockdown since the first corona case was detected, have a significantly higher number of total cases. This supports the analysis that the delay in lockdown can be one of the many reasons for the COVID-19 widespread.
+<br/>
+
+
+7. Does Total Cases has any Impact due to Delay in Recommending the citizen "ways to protect themselves"?
+
+```{r}
+bp<- ggplot(few, aes(x="", y=TotalCases, fill=Country))+
+geom_bar(width = 1, stat = "identity") + geom_text(aes(label = paste0(round(Recomemendation_delay))), position = position_stack(vjust = 0.5)) + labs(title='Lables are Recommendation Delay in Days', x = "", y = "Total Cases")
+bp
+pie <- bp + coord_polar("y",start=0)
+pie
+```
+->Recommendation Delay surely has impacted the number of positive COVID-19 cases. We see some countries with very few cases having negative recommendation delay, which means before the occurence of First case, warning and preventive ways were issued in the country.
+
+<br/>
+
+8.Does Health care Index of the countries affect their Total test taken and Recoveries 
+```{r}
+ggplot(data = numeric, aes(x = Health_care_index, y = TotalRecovered)) + 
+         geom_point(alpha = 3, color = "red") +
+    scale_y_log10()
+```
+
+```{r}
+m <- ggplot(data = numeric, mapping = aes(x = Health_care_index, y = TotalTests)) +
+         geom_point(alpha = 4, color = "blue") 
+    
+m + scale_y_log10() 
+          
+```
+->  Health care Index plays an important role for a country. Number of tests taken and total recoveries are higher in countries with higher Health care Index.
+
+
+<br/>
+
+
+9.Does certain median age group of a country has any relation to total deaths?
+
+
+```{r}
+ggplot(numeric, aes(x=Median_age, y=TotalDeaths, fill=TotalDeaths)) +
+geom_bar(stat="identity")+theme_minimal() 
+```
+->It appears that the countries who are affected most by the COVID-19 have a median age group mostly between 37 to 47. This might also be a possibility that COVID-19 affects countries with a higher age group.
+
+
+
+<br/>
+
+
+$$
+Conclusion
+$$
+<br/>
+Control of COVID-19 outbreak depends on various factors. Since the first case was detected in each country, it was supposed that they took the first line of action recommending ways for preventing the spread. If that was still not enough, further actions like national lockdown should have been imposed to implement social distancing. However, few countries who were quick in their actions were able to control the widespread as compared to the countries who delayed it. 
+<br>
+<br/>
+This explains why some countries despite having a good health care index failed to control the spread as compared to other countries who had lower health care index. The total number of tests performed varied from country to country. Countries with higher health care index were able to perform more tests, which resulted in finding out more positive cases, as compared to countries with lower health care index where the total number of cases couldn’t be considered accurate. With that, it can be concluded that the total number of cases detected were not entirely an accurate count for each country.
+<br/>
+<br/>
+Total cases and total deaths are directly proportional to the recommendation and lockdown delays. More the delay, more COVID-19 cases were observed. COVID-19 cases were also found to be more in countries who have a median age of 37 to 47 which tells us that median age of the country might also be one of the factors for the widespread. A surprising observation can be made that the scale of the outbreak remains independent of the population of the country. As countries with higher populations but who quickly came with actions against this outbreak were able to control widespread. 
+<br/>
+
+
